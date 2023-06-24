@@ -119,26 +119,37 @@ class PuppyBowlApp {
   }
 
   viewRoster() {
+    const filter = this.statusFilter.value;
+  
     fetch(this.APIURL)
       .then(response => response.json())
       .then(({ success, error, data: { players } }) => {
         if (!success) {
           throw new Error(error?.message || 'Failed to fetch roster.');
         }
-
+  
         if (players.length === 0) {
           throw new Error('No players available.');
         }
-
+  
         this.playerContainer.innerHTML = '';
-
+  
         const rosterGrid = document.createElement('div');
         rosterGrid.classList.add('roster-grid');
-
-        players.forEach(player => {
+  
+        const filteredPlayers = players.filter(player => {
+          if (filter === 'field') {
+            return player.status === 'field';
+          } else if (filter === 'bench') {
+            return player.status === 'bench';
+          }
+          return true; // Show all players if no filter selected
+        });
+  
+        filteredPlayers.forEach(player => {
           const playerElement = document.createElement('div');
           playerElement.classList.add('player');
-
+  
           const playerName = document.createElement('p');
           playerName.textContent = `Name: ${player.name}`;
           const playerBreed = document.createElement('p');
@@ -147,25 +158,25 @@ class PuppyBowlApp {
           playerStatus.textContent = `Status: ${player.status}`;
           const playerId = document.createElement('p');
           playerId.textContent = `ID: ${player.id}`;
-
+  
           const playerImage = document.createElement('img');
           playerImage.src = player.imageUrl;
           playerImage.alt = player.name;
           playerImage.classList.add('player-image');
-
+  
           playerElement.appendChild(playerName);
           playerElement.appendChild(playerBreed);
           playerElement.appendChild(playerStatus);
           playerElement.appendChild(playerId);
           playerElement.appendChild(playerImage);
-
+  
           rosterGrid.appendChild(playerElement);
-
+  
           // Add a horizontal line between player elements
           const horizontalLine = document.createElement('hr');
           rosterGrid.appendChild(horizontalLine);
         });
-
+  
         this.playerContainer.appendChild(rosterGrid);
       })
       .catch(error => {
@@ -173,6 +184,7 @@ class PuppyBowlApp {
         console.error(error);
       });
   }
+  
 
   async removePlayer(playerId) {
     try {
